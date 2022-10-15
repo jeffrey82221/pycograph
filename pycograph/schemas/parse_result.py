@@ -329,11 +329,20 @@ class ModuleWithContext(ObjectWithContext):
         except SyntaxError as e:
             raise ModuleWithInvalidContentException from e
 
+    
     def _read_content(self):
         if self.content:
             return
-        with open(self.file_path, "r") as f:
-            self.content = f.read()
+        try:
+            with open(self.file_path, "r") as f:
+                self.content = f.read()
+        except UnicodeDecodeError as e:
+            try:
+                with open(self.file_path, "r", encoding='latin1') as f:
+                    self.content = f.read()
+            except UnicodeDecodeError as e:
+                print('[_read_content] decode error happened on file:', self.file_path)
+                raise ModuleWithInvalidContentException from e
 
 
 class PackageWithContext(ObjectWithContext):
